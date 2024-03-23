@@ -10,8 +10,8 @@
         </button>
       </div>
     </div>
-    <button class="btn btn-sm btn-primary disabled" style="float:right"
-      @click="synchronize()">{{ process ? '....syncing' : 'Synchronize' }}</button><br><br>
+    <button class="btn btn-sm btn-primary disabled" style="float:right" @click="synchronize()">{{ process ?
+      '....syncing' : 'Synchronize' }}</button><br><br>
 
 
     <!-- <div class="row mb-3">
@@ -76,7 +76,6 @@
         </li>
       </ul>
     </nav>
-    <ClientsEditModal v-if="isEditModalOpen" :client="selectedClient" @close="handleModalClose" :intend="intend" />
 
   </div>
 </template>
@@ -84,7 +83,6 @@
 <script>
 import { Link } from '@inertiajs/inertia-vue3';
 import { Inertia, usePage } from '@inertiajs/inertia'; // Import Inertia
-import ClientsEditModal from './EditModal.vue';
 
 export default {
   props: {
@@ -161,11 +159,16 @@ export default {
 
     if (urlParams.has('synchronize')) {
       this.sync = true;
+      setTimeout(() => {
+        urlParams.delete('synchronize');
+        history.replaceState({}, '', `${window.location.pathname}?${urlParams.toString()}`);
+
+      }, 2000);
+
     }
 
   },
   components: {
-    ClientsEditModal,
     Link
   },
 };

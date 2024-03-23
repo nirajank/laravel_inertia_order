@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\Item;
 use App\Models\Order;
 use Carbon\Carbon;
+use Exception;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
@@ -26,7 +27,7 @@ class GetOrderList
         for ($attempt = 1; $attempt <= $this->maxRetries; $attempt++) {
             try {
                 DB::transaction(function () {
-                    $response = Http::get($this->url.'&after='.$this->getDateBeforeThirtyDays());
+                    $response = Http::get($this->url . '&after=' . $this->getDateBeforeThirtyDays());
 
                     if ($response->successful()) {
                         $data = $response->json();
@@ -36,13 +37,14 @@ class GetOrderList
 
                 return; // Exit the loop if successful
 
-            } catch (\Exception $e) {
+            } catch (Exception $e) {
                 Log::error("Order list fetch attempt $attempt failed with transaction rollback: " . $e->getMessage());
                 sleep($this->retryDelay); // Wait before retrying
             }
         }
 
-        throw new \Exception("Failed to fetch order list after " . $this->maxRetries . " retries.");
+        throw new Exception("Failed to fetch order list after " . $this->maxRetries . " 
+        retries.Problems may be you havenot set url or incorrect key");
     }
 
 
@@ -51,10 +53,10 @@ class GetOrderList
         foreach (array_chunk($data, 1000) as $chunk) {
             foreach ($chunk as $order) {
                 $orderFilter = $this->filterOrder($order);
-                Order::updateOrCreate(['order_id' => $orderFilter['order_id']], $orderFilter);
+                $orderData = Order::updateOrCreate(['order_id' => $orderFilter['order_id']], $orderFilter);
 
                 foreach ($order['line_items'] as $item) {
-                    $itemData = $this->filterItem($item, $orderFilter['order_id']);
+                    $itemData = $this->filterItem($item, $orderData['id']);
                     Item::updateOrCreate(['item_id' => $itemData['item_id']], $itemData);
                 }
             }

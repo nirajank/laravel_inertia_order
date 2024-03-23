@@ -27,6 +27,12 @@ class Order extends Model
         'order_id'
     ];
 
+    public function checkField($columnName)
+    {
+        return in_array($columnName,$this->getFillable());
+    }
+
+
     public function insertOrUpdateArrayBilling(array $data)
     {
         // Prepare the data (optional)
@@ -46,4 +52,10 @@ class Order extends Model
             'shipping' => $data,
         ]);
     }
+
+    public function items()
+    {
+        return $this->hasMany(Item::class,'order_id');
+    }
 }
+

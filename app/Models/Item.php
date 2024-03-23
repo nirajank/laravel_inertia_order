@@ -16,5 +16,7 @@ class Item extends Model
         'variant_id',
         'quantity',
         'taxed_price',
+        'order_id',
+        'item_id'
      ];
 }

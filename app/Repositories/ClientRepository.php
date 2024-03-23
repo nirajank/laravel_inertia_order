@@ -5,14 +5,20 @@ namespace App\Repositories;
 use App\Contracts\ClientRepositoryInterface;
 use App\Models\Order;
 use App\Services\GetOrderList;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Database\Eloquent\Collection;
 
 class ClientRepository implements ClientRepositoryInterface
 {
-    public function all()
+    public function all(bool $synOnly=false) :  bool | Collection | LengthAwarePaginator
     {
-        $query = Order::query();
-        $this->synchronize();
-        return $this->filter($query)->paginate(10);
+        $query = Order::query()->with('items');
+        $this->synchronize($synOnly);
+        if($synOnly){
+            return true;
+        }
+        $query=$this->sort($query);
+        return $this->filter($query)->paginate(request('per_page')??10);
     }
 
     public function find(int $id): ?Order
@@ -46,7 +52,7 @@ class ClientRepository implements ClientRepositoryInterface
         if ($filters && !empty($filters)) {
             $query=$query->where(function ($q) use ($filters) {
                 foreach ($filters as $key => $value) {
-                    if($value){
+                    if($value && $q->getModel()->checkField($key)){
                         $q->where($key,$value);
                     }
                 }
@@ -55,9 +61,24 @@ class ClientRepository implements ClientRepositoryInterface
         return $query;
     }
 
-    private function synchronize():void
+    private function sort($query)
     {
-        if(request()->synchronize){
+        $sortBy = request()->input('sort_by', 'id'); // Default sort by id
+        $sortDirection = request()->input('sort_dir', 'asc'); // Default ascending order
+        $arrayCheck=$query->getModel()->getFillable();
+        
+        if (in_array($sortBy,$arrayCheck) || $sortBy=='id') {
+            return $query->orderBy($sortBy, $sortDirection);
+
+        }
+
+       return $query;
+
+    }
+
+    private function synchronize(bool $sync=false):void
+    {
+        if(request()->synchronize || $sync){
           (new GetOrderList(config('app.order_url')))->getList();
         }
     }

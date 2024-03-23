@@ -17,3 +17,9 @@ use Illuminate\Support\Facades\Route;
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
+
+
+Route::group(['prefix' => 'clients'], function () {
+    Route::get('/', [App\Http\Controllers\ClientApiController::class, 'index'])->name('clients.index');
+    Route::get('/sync', [App\Http\Controllers\ClientApiController::class, 'syncrhonize'])->name('clients.sync');
+});

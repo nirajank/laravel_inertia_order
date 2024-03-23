@@ -185,6 +185,6 @@ return [
         // 'Example' => App\Facades\Example::class,
     ])->toArray(),
 
-    'order_url'=>'https://interview-test.matat.io/wp-json/wc/v3/orders?consumer_key=ck_40d0806b16feb3bd67a4d8dbbff163c6dfcf061d&consumer_secret=cs_9544e30809595750f8f1c6f3f9a6efcc38bfd06d&per_page=100'
+    'order_url'=> env('ORDER_URL','empty')
 
 ];

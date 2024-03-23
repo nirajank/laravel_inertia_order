@@ -7,6 +7,7 @@ use App\Http\Requests\StoreClientRequest;
 use App\Http\Requests\UpdateClientRequest; // Add a request for update validation
 use App\Http\Resources\ClientResource;
 use App\Services\GetOrderList;
+use Exception;
 use Illuminate\Http\JsonResponse;
 use Inertia;
 use Illuminate\Support\Facades\Lang;  // Include for translations
@@ -35,14 +36,20 @@ class ClientController extends Controller
      *
      * @return Inertia\Response
      */
-    public function index(): Inertia\Response
+    public function index(): Inertia\Response | JsonResponse
     {
+        try{
+            $clients = $this->clientRepository->all();
+            return Inertia\Inertia::render('Clients/Index', [
+                'clients' => ClientResource::collection($clients),
+                'filters' => request('filters'),
+            ]);
 
-        $clients = $this->clientRepository->all();
-        return Inertia\Inertia::render('Clients/Index', [
-            'clients' => ClientResource::collection($clients),
-            'filters' => request('filters'),
-        ]);
+        }catch(Exception $e){
+            return response()->json(['message' => $e->getMessage()], 500);
+        }
+
+       
     }
 
     /**
